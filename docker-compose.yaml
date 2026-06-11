@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=gusgo
+      - POSTGRES_PASSWORD=gusgo
+      - POSTGRES_USER=gusgo
+    ports:
+      - '5432:5432'
+    volumes:
+      - './storage/app/postgres/data:/var/lib/postgresql/data'

@@ -6,10 +6,10 @@ gitignore# IntelliJ IDEA / Android Studio
 
 # Exception: If you want to share run configurations and code styles with your team,
 # uncomment the lines below instead of ignoring the entire .idea/ folder:
-# .idea/*
-# !.idea/runConfigurations/
-# !.idea/codeStyles/
-# !.idea/scopes/
+.idea/*
+!.idea/runConfigurations/
+!.idea/codeStyles/
+!.idea/scopes/
 
 # Kotlin and Build Outputs
 .kotlin/
@@ -18,8 +18,6 @@ out/
 
 # Gradle Build Tool
 .gradle/
-/build.gradle.kts
-/settings.gradle.kts
 !gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
 
@@ -29,3 +27,6 @@ local.properties
 # Operating System Files
 .DS_Store
 Thumbs.db
+
+# database docker
+storage
