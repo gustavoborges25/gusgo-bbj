@@ -9,6 +9,7 @@ import org.springframework.data.crossstore.ChangeSetPersister
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingRequestHeaderException
@@ -16,11 +17,12 @@ import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.servlet.NoHandlerFoundException
-import tools.jackson.databind.exc.InvalidFormatException
+import org.springframework.web.servlet.resource.NoResourceFoundException
+import tools.jackson.databind.exc.InvalidNullException
 import java.time.format.DateTimeParseException
 import java.util.regex.Pattern
-import kotlin.collections.get
 
 @ControllerAdvice
 class GlobalExceptionHandler {
@@ -72,25 +74,35 @@ class GlobalExceptionHandler {
     fun handleMethodArgumentNotValidException(exception: MethodArgumentNotValidException): ResponseEntity<ErrorRestResponse<*>> {
         val fieldErrors : List<FieldError> = exception.bindingResult.fieldErrors
         logger.error("MethodArgumentNotValidException", exception)
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(processFieldErrors(fieldErrors))
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(processFieldErrors(fieldErrors, "One or more fields are invalid."))
     }
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleHttpMessageNotReadableException(exception: HttpMessageNotReadableException): ResponseEntity<ErrorRestResponse<*>> {
         var message = "Request body is missing or with error"
-        val root = exception.rootCause
-        if (root != null) {
-            message = when (root) {
-                is InvalidFormatException -> {
-                    "Value '${root.value}' is not a valid for '${root.path[0].propertyName}'."
-                }
-                else -> root.message ?: message
+        val cause = exception.cause
+        val fieldErrors = mutableListOf<ErrorRestResponse.FieldError>()
+
+        if (cause is InvalidNullException && cause.javaClass.simpleName == "KotlinInvalidNullException") {
+            val fieldName = cause.path.joinToString(".") { ref ->
+                if (ref.index > -1) "[${ref.index}]" else ref.propertyName
             }
+            message = "One or more required fields were not submitted."
+            fieldErrors.add(
+                ErrorRestResponse.FieldError(
+                    field = fieldName,
+                    message = "This field is mandatory."
+                )
+            )
         }
-        logger.error(message, exception)
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-            ErrorRestResponse(code = HttpStatus.BAD_REQUEST.value(), message = message, null)
+
+        val response = ErrorRestResponse(
+            code = HttpStatus.BAD_REQUEST.value(),
+            message = message,
+            details = fieldErrors.ifEmpty { null }
         )
+        logger.error(message, exception)
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response)
     }
 
     @ExceptionHandler(DateTimeParseException::class)
@@ -149,13 +161,60 @@ class GlobalExceptionHandler {
         )
     }
 
+
+    @ExceptionHandler(ResponseStatusException::class)
+    fun handleResponseStatusException(ex: ResponseStatusException): ResponseEntity<ErrorRestResponse<*>> {
+        val status = ex.statusCode
+        val errorMessage = ex.reason ?: "An unexpected error occurred."
+        return ResponseEntity.status(status.value()).body(
+            ErrorRestResponse(
+                code = status.value(),
+                message = errorMessage,
+                null
+            )
+        )
+    }
+
+    @ExceptionHandler(NoResourceFoundException::class)
+    fun handleResponseStatusException(ex: NoResourceFoundException): ResponseEntity<ErrorRestResponse<*>> {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            ErrorRestResponse(
+                code = HttpStatus.NOT_FOUND.value(),
+                message = "The requested resource or endpoint does not exist.",
+                null
+            )
+        )
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException::class)
+    fun handleAuthorizationDeniedException(
+        ex: AuthorizationDeniedException
+    ): ResponseEntity<ErrorRestResponse<*>> {
+
+        val errorBody = ErrorRestResponse(
+            code = HttpStatus.FORBIDDEN.value(),
+            message = "Access Denied: You do not have the required permissions to access this resource.",
+            null
+        )
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorBody)
+    }
+
     private fun processFieldErrors(fieldErrors: List<FieldError>): ErrorRestResponse<*> {
+        return processFieldErrors(fieldErrors, null)
+    }
+
+    private fun processFieldErrors(fieldErrors: List<FieldError>, message: String?): ErrorRestResponse<*> {
+        val finalMessage = message?.takeUnless { it.isBlank() } ?: "validation error"
         val errors = fieldErrors.map { fieldError ->
-            ErrorRestResponse.FieldError(field = fieldError.field, message = fieldError.defaultMessage ?: "validation error")
+            ErrorRestResponse.FieldError(
+                field = fieldError.field,
+                message = fieldError.defaultMessage?.takeUnless { it.isBlank() } ?: "validation error"
+            )
         }
         return ErrorRestResponse(
             code = HttpStatus.BAD_REQUEST.value(),
-            message = "validation error",
+            message = finalMessage,
             details = errors
         )
     }

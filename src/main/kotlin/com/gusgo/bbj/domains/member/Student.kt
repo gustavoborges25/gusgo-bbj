@@ -41,11 +41,11 @@ class Student(
     var birthDate: LocalDate,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "current_belt_id", nullable = false)
-    var currentBelt: Belt,
+    @JoinColumn(name = "belt_id", nullable = false)
+    var belt: Belt,
 
-    @Column(name = "belt_degree", nullable = false)
-    var beltDegree: Int = 0,
+    @Column(name = "degree", nullable = false)
+    var degree: Int = 0,
 
     @Column(name = "join_date", nullable = false)
     var joinDate: LocalDate = LocalDate.now(),

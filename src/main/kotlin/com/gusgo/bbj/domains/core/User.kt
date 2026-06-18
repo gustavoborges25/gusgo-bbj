@@ -1,6 +1,7 @@
 package com.gusgo.bbj.domains.core
 
 import jakarta.persistence.*
+import org.hibernate.annotations.ColumnTransformer
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
@@ -27,10 +28,11 @@ class User(
     var email: String,
 
     @Column(name = "password_hash", nullable = false)
-    var passwordHash: String,
+    var passwordHash: String?,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @ColumnTransformer(write = "?::user_role")
     var role: UserRole,
 
     @field:CreationTimestamp

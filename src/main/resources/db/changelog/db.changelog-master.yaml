@@ -6,3 +6,10 @@ databaseChangeLog:
         - sqlFile:
             path: V1__create-initial.sql
             relativeToChangelogFile: true
+  - changeSet:
+      id: 2
+      author: Gustavo
+      changes:
+        - sqlFile:
+            path: V2__insert-default.sql
+            relativeToChangelogFile: true

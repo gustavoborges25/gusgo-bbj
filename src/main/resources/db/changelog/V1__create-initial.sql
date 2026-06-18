@@ -38,12 +38,12 @@ CREATE TABLE belts (
 INSERT INTO belts (name, color, order_position) VALUES
 ('Branca', '#FFFFFF', 1),
 ('Cinza', '#808080', 2),
-('Amarela', '#FFFF00', 3),
-('Laranja', '#FFA500', 4),
+('Amarela', '#FFD700', 3),
+('Laranja', '#FF8C00', 4),
 ('Verde', '#008000', 5),
-('Azul', '#0000FF', 6),
-('Roxa', '#800080', 7),
-('Marrom', '#A52A2A', 8),
+('Azul', '#002D62', 6),
+('Roxa', '#4B0082', 7),
+('Marrom', '#8B4513', 8),
 ('Preta', '#000000', 9);
 -- Criação da tabela de professores
 CREATE TABLE instructors (
@@ -78,8 +78,8 @@ CREATE TABLE students (
     user_id UUID UNIQUE,
     name VARCHAR(255) NOT NULL,
     birth_date DATE NOT NULL,
-    current_belt_id UUID NOT NULL,
-    belt_degree INTEGER NOT NULL DEFAULT 0,
+    belt_id UUID NOT NULL,
+    degree INTEGER NOT NULL DEFAULT 0,
     join_date DATE NOT NULL DEFAULT CURRENT_DATE,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     notes TEXT,
@@ -97,7 +97,7 @@ CREATE TABLE students (
         ON DELETE SET NULL,
     -- Chave Estrangeira para Faixas
     CONSTRAINT fk_student_belt
-        FOREIGN KEY (current_belt_id)
+        FOREIGN KEY (belt_id)
         REFERENCES belts (id)
         ON DELETE RESTRICT
 );

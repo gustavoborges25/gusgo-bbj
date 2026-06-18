@@ -10,4 +10,5 @@ interface InstructorRepository: JpaRepository<Instructor, UUID> {
     fun findAllByAcademyIdAndActiveTrue(academyId: UUID): List<Instructor>
 
     fun existsByUserId(userId: UUID): Boolean
+    fun findAllByAcademyId(academyId: UUID): MutableList<Instructor>
 }

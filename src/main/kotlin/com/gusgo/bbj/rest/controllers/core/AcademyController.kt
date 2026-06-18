@@ -1,10 +1,13 @@
-package com.gusgo.bbj.rest.controllers
+package com.gusgo.bbj.rest.controllers.core
 
-import com.gusgo.bbj.application.dtos.AcademyDto
-import com.gusgo.bbj.application.services.AcademyService
+import com.gusgo.bbj.application.dtos.core.AcademyRequest
+import com.gusgo.bbj.application.dtos.core.AcademyResponse
+import com.gusgo.bbj.application.services.core.AcademyService
 import com.gusgo.bbj.rest.resources.RestResponse
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -16,33 +19,33 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-@RequestMapping("/academies")
+@RequestMapping("/api/v1/academies")
+@PreAuthorize("hasRole('OWNER')")
 class AcademyController(
     private val academyService: AcademyService
 )
 {
     @PostMapping
-    fun create(@RequestBody academyDto: AcademyDto): ResponseEntity<RestResponse<AcademyDto>> =
+    fun create(@RequestBody @Valid academyDto: AcademyRequest): ResponseEntity<RestResponse<AcademyResponse>> =
         ResponseEntity
             .status(HttpStatus.CREATED)
             .body(RestResponse(academyService.create(academyDto)))
 
     @GetMapping
-    fun getAll(): ResponseEntity<RestResponse<List<AcademyDto>>> =
-        ResponseEntity.ok(RestResponse(academyService.getAll()))
+    fun listAll(): ResponseEntity<RestResponse<List<AcademyResponse>>> =
+        ResponseEntity.ok(RestResponse(academyService.listAll()))
 
     @GetMapping("/{id}")
-    fun getById(@PathVariable id: String): ResponseEntity<RestResponse<AcademyDto>> =
-        ResponseEntity.ok(RestResponse(academyService.getById(UUID.fromString(id))))
+    fun findById(@PathVariable id: UUID): ResponseEntity<RestResponse<AcademyResponse>> =
+        ResponseEntity.ok(RestResponse(academyService.findById(id)))
 
     @PutMapping("/{id}")
-    fun update(@PathVariable id: String, @RequestBody academyDto: AcademyDto): ResponseEntity<RestResponse<AcademyDto>> =
-        ResponseEntity.ok(RestResponse(academyService.update(UUID.fromString(id), academyDto)))
+    fun update(@PathVariable id: UUID, @Valid @RequestBody academyDto: AcademyRequest): ResponseEntity<RestResponse<AcademyResponse>> =
+        ResponseEntity.ok(RestResponse(academyService.update(id, academyDto)))
 
     @DeleteMapping("/{id}")
     fun delete(@PathVariable id: String): ResponseEntity<Void> {
         academyService.delete(UUID.fromString(id))
         return ResponseEntity.noContent().build()
     }
-
 }
