@@ -28,10 +28,6 @@ data class InstructorUpdateRequest(
     @field:NotBlank(message = "Name is required.")
     val name: String,
 
-    @field:NotBlank(message = "Email is required.")
-    @field:Email(message = "Invalid email format.")
-    val email: String,
-
     val password: String?,
 
     @field:NotNull(message = "Belt ID is required.")

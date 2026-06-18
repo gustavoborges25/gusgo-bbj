@@ -21,7 +21,7 @@ import java.util.UUID
 class Instructor(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    val id: UUID? = null,
+    var id: UUID? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "academy_id", nullable = false)
