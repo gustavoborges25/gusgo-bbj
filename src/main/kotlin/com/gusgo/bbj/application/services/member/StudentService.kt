@@ -22,7 +22,6 @@ class StudentService(
     private val studentRepository: StudentRepository,
     private val academyRepository: AcademyRepository,
     private val beltRepository: BeltRepository,
-    private val userRepository: UserRepository,
     private val securityContextService: SecurityContextService
 ) {
 
@@ -56,10 +55,8 @@ class StudentService(
     }
 
     @Transactional(readOnly = true)
-    fun findAllByAcademy(academyId: UUID): List<StudentResponse> {
-        if (!academyRepository.existsById(academyId)) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND, "The specified academy does not exist.")
-        }
+    fun findAllByAcademy(): List<StudentResponse> {
+        val academyId = securityContextService.getCurrentAcademyId()
         val students = studentRepository.findAllByAcademyId(academyId)
         return students.map { it.toResponse() }
     }
@@ -69,13 +66,13 @@ class StudentService(
         val student = studentRepository.findByIdOrNull(id)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found.")
 
+        val belt = beltRepository.findByIdOrNull(request.beltId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "The specified belt does not exist.")
+
         val loggedAcademyId = securityContextService.getCurrentAcademyId()
         if (student.academy.id != loggedAcademyId) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to modify students from another academy.")
         }
-
-        val belt = beltRepository.findByIdOrNull(request.beltId)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "The specified belt does not exist.")
 
         student.name = request.name
         student.birthDate = request.birthDate
@@ -89,8 +86,14 @@ class StudentService(
 
     @Transactional
     fun deleteStudent(id: UUID) {
+        val loggedAcademyId = securityContextService.getCurrentAcademyId()
+
         val student = studentRepository.findByIdOrNull(id)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found.")
+
+        if (student.academy.id != loggedAcademyId) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to delete students from another academy.")
+        }
 
         studentRepository.delete(student)
     }
@@ -116,6 +119,7 @@ class StudentService(
         birthDate = this.birthDate,
         beltId = this.belt.id!!,
         beltName = this.belt.name,
+        beltColor = this.belt.color,
         degree = this.degree,
         joinDate = this.joinDate,
         active = this.active,

@@ -52,6 +52,7 @@ data class StudentResponse(
     val birthDate: LocalDate,
     val beltId: UUID,
     val beltName: String,
+    val beltColor: String,
     val degree: Int,
     val joinDate: LocalDate,
     val active: Boolean,

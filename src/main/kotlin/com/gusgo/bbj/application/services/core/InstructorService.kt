@@ -104,8 +104,14 @@ class InstructorService(
 
     @Transactional
     fun deleteInstructor(id: UUID) {
+        val loggedAcademyId = securityContextService.getCurrentAcademyId()
+
         val instructor = instructorRepository.findByIdOrNull(id)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Instructor not found.")
+
+        if (instructor.academy.id != loggedAcademyId) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to delete instructors from another academy.")
+        }
 
         instructorRepository.delete(instructor)
     }
@@ -119,8 +125,8 @@ class InstructorService(
         if (instructor.academy.id != loggedAcademyId) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to modify instructors from another academy.")
         }
-
         instructor.active = request.active
+
         return instructorRepository.save(instructor).toResponse()
     }
 

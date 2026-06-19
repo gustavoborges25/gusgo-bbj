@@ -521,9 +521,12 @@ class InstructorServiceTest {
     @Test
     fun `should delete instructor successfully`() {
         // Arrange
-        val mockInstructor = mockk<Instructor>()
+        val mockInstructor = mockk<Instructor> {
+            every { academy.id } returns academyId // Academia dona do instrutor
+        }
         every { instructorRepository.findByIdOrNull(instructorId) } returns mockInstructor
         every { instructorRepository.delete(mockInstructor) } returns Unit
+        every { securityContextService.getCurrentAcademyId() } returns academyId
 
         // Act
         instructorService.deleteInstructor(instructorId)
@@ -537,6 +540,7 @@ class InstructorServiceTest {
         // Arrange
         // Simula que o instrutor não foi encontrado
         every { instructorRepository.findByIdOrNull(instructorId) } returns null
+        every { securityContextService.getCurrentAcademyId() } returns academyId
 
         // Act & Assert
         val exception = assertThrows<ResponseStatusException> {
@@ -545,6 +549,31 @@ class InstructorServiceTest {
 
         assertEquals(HttpStatus.NOT_FOUND, exception.statusCode)
         assertEquals("Instructor not found.", exception.reason)
+
+        verify(exactly = 0) { instructorRepository.delete(any()) }
+    }
+
+    @Test
+    fun `should throw FORBIDDEN when delete instructors from another academy`() {
+        // Arrange
+        val anotherAcademyId = UUID.randomUUID()
+        val mockAnotherAcademy = mockk<Academy> {
+            every { id } returns anotherAcademyId
+        }
+
+        val mockInstructor = mockk<Instructor> {
+            every { academy } returns mockAnotherAcademy // Academia diferente da logada
+        }
+        every { instructorRepository.findByIdOrNull(instructorId) } returns mockInstructor
+        every { securityContextService.getCurrentAcademyId() } returns academyId
+
+        // Act & Assert
+        val exception = assertThrows<ResponseStatusException> {
+            instructorService.deleteInstructor(instructorId)
+        }
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.statusCode)
+        assertEquals("You do not have permission to delete instructors from another academy.", exception.reason)
 
         verify(exactly = 0) { instructorRepository.delete(any()) }
     }
