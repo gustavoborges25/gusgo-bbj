@@ -1,6 +1,6 @@
 package com.gusgo.bbj.security
 
-import com.gusgo.bbj.domains.core.User
+import com.gusgo.bbj.domains.registration.User
 import org.springframework.security.oauth2.jwt.JwtClaimsSet
 import org.springframework.security.oauth2.jwt.JwtEncoder
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters
@@ -22,7 +22,7 @@ class TokenService(private val jwtEncoder: JwtEncoder) {
             .expiresAt(now.plus(expiresIn, ChronoUnit.HOURS))
             .claim("academyId", user.academy.id.toString())
             .claim("name", user.name)
-            .claim("role", user.role.name) // OWNER, PROFESSOR, ALUNO
+            .claim("role", user.role.name) // OWNER, INSTRUCTOR, STUDENT
             .build()
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).tokenValue

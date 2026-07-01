@@ -1,18 +1,18 @@
 package com.gusgo.bbj.application.services
 
-import com.gusgo.bbj.application.dtos.core.InstructorCreateRequest
-import com.gusgo.bbj.application.dtos.core.InstructorPatchRequest
-import com.gusgo.bbj.application.dtos.core.InstructorUpdateRequest
-import com.gusgo.bbj.application.repositories.core.AcademyRepository
-import com.gusgo.bbj.application.repositories.core.InstructorRepository
-import com.gusgo.bbj.application.repositories.core.UserRepository
-import com.gusgo.bbj.application.repositories.pedagogy.BeltRepository
-import com.gusgo.bbj.application.services.core.InstructorService
-import com.gusgo.bbj.domains.core.Academy
-import com.gusgo.bbj.domains.core.Instructor
-import com.gusgo.bbj.domains.core.User
-import com.gusgo.bbj.domains.core.UserRole
-import com.gusgo.bbj.domains.pedagogy.Belt
+import com.gusgo.bbj.application.dtos.registration.InstructorCreateRequest
+import com.gusgo.bbj.application.dtos.registration.InstructorPatchRequest
+import com.gusgo.bbj.application.dtos.registration.InstructorUpdateRequest
+import com.gusgo.bbj.application.repositories.registration.AcademyRepository
+import com.gusgo.bbj.application.repositories.registration.InstructorRepository
+import com.gusgo.bbj.application.repositories.registration.UserRepository
+import com.gusgo.bbj.application.repositories.methodology.BeltRepository
+import com.gusgo.bbj.application.services.registration.InstructorService
+import com.gusgo.bbj.domains.registration.Academy
+import com.gusgo.bbj.domains.registration.Instructor
+import com.gusgo.bbj.domains.registration.User
+import com.gusgo.bbj.domains.registration.UserRole
+import com.gusgo.bbj.domains.methodology.Belt
 import com.gusgo.bbj.security.SecurityContextService
 import io.mockk.every
 import io.mockk.mockk
@@ -358,7 +358,7 @@ class InstructorServiceTest {
             name = "Old Name",
             email = "alex@test.com",
             passwordHash = "oldHash",
-            role = UserRole.PROFESSOR
+            role = UserRole.INSTRUCTOR
         )
         val instructorMock = Instructor(
             academy = mockAcademy,
@@ -403,7 +403,7 @@ class InstructorServiceTest {
             name = "Old Name",
             email = "alex@test.com",
             passwordHash = "oldHash",
-            role = UserRole.PROFESSOR
+            role = UserRole.INSTRUCTOR
         )
 
         val instructorMock = Instructor(
@@ -450,7 +450,7 @@ class InstructorServiceTest {
             name = "Old Name",
             email = "alex@test.com",
             passwordHash = "keepThisHash", // Esta hash deve ser mantida
-            role = UserRole.PROFESSOR
+            role = UserRole.INSTRUCTOR
         )
 
         val instructorMock = Instructor(
@@ -494,7 +494,7 @@ class InstructorServiceTest {
             name = "Old Name",
             email = "alex@test.com",
             passwordHash = "keepThisHash",
-            role = UserRole.PROFESSOR
+            role = UserRole.INSTRUCTOR
         )
 
         val instructorMock = Instructor(
